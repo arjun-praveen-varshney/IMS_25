@@ -474,7 +474,7 @@ export default function DashboardPage() {
               Here&apos;s an overview of key academic metrics.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 items-center">
+          {/* <div className="flex flex-col sm:flex-row gap-3 items-center">
             <select
               value={reportType}
               onChange={(e) =>
@@ -498,7 +498,6 @@ export default function DashboardPage() {
               <DocumentArrowDownIcon className="h-5 w-5" />
               {generatingReport ? "Generating..." : "Generate Report"}
             </button>
-            {/* Generate CV/Biodata button for faculty only */}
             {user?.role === "faculty" && (
               <button
                 onClick={handleGenerateBiodata}
@@ -510,7 +509,7 @@ export default function DashboardPage() {
                 {biodataLoading ? "Generating..." : "Generate CV/Biodata"}
               </button>
             )}
-          </div>
+          </div> */}
         </div>
 
         {/* Report status message */}
