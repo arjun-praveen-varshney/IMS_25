@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   UserGroupIcon,
   AcademicCapIcon,
@@ -21,7 +22,6 @@ import DepartmentBarChart from "@/app/components/dashboard/DepartmentBarChart";
 import { DashboardStats } from "@/app/lib/types";
 import { NavHelper } from "./nav-helper";
 import { useAuth } from "@/app/providers/auth-provider";
-import { useRouter } from "next/navigation";
 import { EnhancedReportPreview } from "@/app/components/ui/enhanced-report-preview";
 
 interface DepartmentStat {
@@ -43,6 +43,21 @@ interface DepartmentData {
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Department users should be redirected during login, not here
+  // This redirect was causing infinite loops - DISABLED
+  // useEffect(() => {
+  //   if (
+  //     !authLoading &&
+  //     user &&
+  //     (user.role === "department" || user.role === "hod")
+  //   ) {
+  //     router.replace("/departments/dashboard");
+  //     return;
+  //   }
+  // }, [user, authLoading, router]);
+
   const [diagnostic, setDiagnostic] = useState<any>(null);
   const [loadingDiag, setLoadingDiag] = useState(false);
   const [dashboardData, setDashboardData] = useState<

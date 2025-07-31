@@ -49,6 +49,19 @@ export default function DepartmentsPage() {
   // All hooks at the top
   const router = useRouter();
   const { user, loading } = useAuth();
+
+  // Redirect HOD users to their department dashboard - TEMPORARILY DISABLED FOR DEBUGGING
+  // useEffect(() => {
+  //   if (
+  //     !loading &&
+  //     user &&
+  //     (user.role === "hod" || user.role === "department")
+  //   ) {
+  //     router.push("/departments/dashboard");
+  //     return;
+  //   }
+  // }, [user, loading, router]);
+
   const [departments, setDepartments] = useState<Department[]>([]);
   const [filteredDepartments, setFilteredDepartments] = useState<Department[]>(
     []

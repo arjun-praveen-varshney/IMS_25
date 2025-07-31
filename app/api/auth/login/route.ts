@@ -157,6 +157,12 @@ export async function POST(request: NextRequest) {
     // Remove password from user object before sending response
     const { password: _, is_active, ...userWithoutPassword } = user;
 
+    // Determine redirect URL based on user role
+    let redirectUrl = "/dashboard"; // Default for regular users
+    if (user.role === "hod" || user.role === "department") {
+      redirectUrl = "/departments/dashboard";
+    }
+
     // Create the response
     const response = NextResponse.json({
       success: true,
@@ -165,6 +171,7 @@ export async function POST(request: NextRequest) {
         departmentId: userWithoutPassword.department_id || null,
         permissions: permissionNames,
       },
+      redirectUrl, // Include redirect URL in response
     }); // Set cookie in the response with more explicit settings - IMPORTANT: domain must not be set for Vercel deployment
     console.log(
       `Setting session cookie for ${user.username}, maxAge: ${maxAge}`

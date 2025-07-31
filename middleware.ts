@@ -36,6 +36,7 @@ const publicApiPaths = [
   "/api/faculty/check-exists",
   "/api/departments",
   "/api/faculty/autocomplete",
+  "/api/admin/fix-user-role", // Temporarily public for fixing user roles
 ];
 
 // Use env variable with fallback for JWT secret

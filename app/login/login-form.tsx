@@ -192,9 +192,13 @@ export default function LoginPage() {
           sessionStorage.setItem("authUser", JSON.stringify(data.user));
         }
 
+        // Use redirectUrl from API response if available, otherwise use default redirect
+        const redirectPath = data.redirectUrl || redirect;
+        console.log("Redirecting to:", redirectPath);
+
         // Show success message and redirect
         setSuccessMessage("Login successful! Redirecting...");
-        doRedirect(redirect);
+        doRedirect(redirectPath);
       } else {
         // Handle API error
         const errorData = await response.json();
