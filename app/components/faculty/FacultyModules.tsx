@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAuth } from "@/app/providers/auth-provider";
 import {
   BookOpen,
   Award,
@@ -50,6 +51,8 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
   const [facultyInfo, setFacultyInfo] = useState<FacultyInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [generatingReport, setGeneratingReport] = useState<string | null>(null);
+  const { user } = useAuth();
   const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
@@ -101,24 +104,119 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
     fetchFacultyInfo();
   }, [facultyId]);
 
+  // Function to generate reports for specific module types
+  const generateModuleReport = async (moduleType: string) => {
+    if (
+      !user ||
+      (user.role !== "department" &&
+        user.role !== "hod" &&
+        user.role !== "faculty")
+    ) {
+      return;
+    }
+
+    // Ensure we have faculty info before generating report
+    if (!facultyInfo?.F_id) {
+      alert("Faculty information not available. Please try again.");
+      return;
+    }
+
+    try {
+      setGeneratingReport(moduleType);
+
+      const reportConfig = {
+        reportType: moduleType,
+        departmentId: "", // Empty for individual faculty reports
+        format: "pdf",
+        facultyId: facultyInfo?.F_id?.toString(), // Use the actual faculty ID from the fetched info
+        isIndividualReport: true, // Flag to indicate this is for individual faculty
+      };
+
+      console.log("Generating report for:", {
+        facultyName: facultyInfo?.F_name,
+        facultyId: facultyInfo?.F_id,
+        moduleType,
+        reportConfig,
+      });
+
+      const response = await fetch("/api/reports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reportConfig),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to generate ${moduleType} report`);
+      }
+
+      // Get the JSON response with base64 PDF data (same as dashboard reports)
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(
+          result.message || `Failed to generate ${moduleType} report`
+        );
+      }
+
+      // Convert base64 to blob and download (same as dashboard approach)
+      const byteCharacters = atob(result.data.pdfBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: "application/pdf" });
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download =
+        result.data.filename ||
+        `${facultyInfo?.F_name?.replace(/\s+/g, "_")}_${moduleType}_report_${
+          new Date().toISOString().split("T")[0]
+        }.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error(`Error generating ${moduleType} report:`, error);
+      alert(`Failed to generate ${moduleType} report. Please try again.`);
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  // Helper function to check if user can generate reports
+  const canGenerateReports = () => {
+    return (
+      user &&
+      (user.role === "department" ||
+        user.role === "hod" ||
+        user.role === "faculty")
+    );
+  };
+
   const handleDownloadReport = async () => {
     try {
       setReportLoading(true);
       const response = await fetch("/api/faculty/comprehensive-report");
-      
+
       if (!response.ok) {
         throw new Error("Failed to generate report");
       }
-      
+
       const data = await response.json();
-      
+
       if (!data.success) {
         throw new Error(data.message || "Failed to generate report");
       }
-      
+
       // Convert base64 to blob
       const pdfBlob = base64ToBlob(data.data.pdfBase64, "application/pdf");
-      
+
       // Create download link
       const url = URL.createObjectURL(pdfBlob);
       const a = document.createElement("a");
@@ -128,7 +226,6 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
     } catch (err) {
       console.error("Error downloading report:", err);
       alert(err instanceof Error ? err.message : "Failed to download report");
@@ -136,24 +233,24 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
       setReportLoading(false);
     }
   };
-  
+
   // Helper function to convert base64 to blob
   const base64ToBlob = (base64: string, mimeType: string) => {
     const byteCharacters = atob(base64);
     const byteArrays = [];
-    
+
     for (let offset = 0; offset < byteCharacters.length; offset += 512) {
       const slice = byteCharacters.slice(offset, offset + 512);
-      
+
       const byteNumbers = new Array(slice.length);
       for (let i = 0; i < slice.length; i++) {
         byteNumbers[i] = slice.charCodeAt(i);
       }
-      
+
       const byteArray = new Uint8Array(byteNumbers);
       byteArrays.push(byteArray);
     }
-    
+
     return new Blob(byteArrays, { type: mimeType });
   };
 
@@ -227,7 +324,7 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
               Research papers and articles published
             </p>
           </CardContent>
-          <CardFooter>
+          <CardFooter className={canGenerateReports() ? "space-y-2" : ""}>
             <Link href={`/faculty/publications`} className="w-full">
               <Button
                 variant="outline"
@@ -237,6 +334,26 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
+            {canGenerateReports() && (
+              <Button
+                variant="default"
+                className="w-full flex justify-between items-center"
+                onClick={() => generateModuleReport("publications")}
+                disabled={generatingReport === "publications"}
+              >
+                {generatingReport === "publications" ? (
+                  <>
+                    Generating...
+                    <Download className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  <>
+                    Generate Report
+                    <Download className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            )}
           </CardFooter>
         </Card>
 
@@ -257,7 +374,7 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
               Ongoing and completed research projects
             </p>
           </CardContent>
-          <CardFooter>
+          <CardFooter className={canGenerateReports() ? "space-y-2" : ""}>
             <Link href={`/faculty/research-projects`} className="w-full">
               <Button
                 variant="outline"
@@ -267,6 +384,26 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
+            {canGenerateReports() && (
+              <Button
+                variant="default"
+                className="w-full flex justify-between items-center"
+                onClick={() => generateModuleReport("research-projects")}
+                disabled={generatingReport === "research-projects"}
+              >
+                {generatingReport === "research-projects" ? (
+                  <>
+                    Generating...
+                    <Download className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  <>
+                    Generate Report
+                    <Download className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            )}
           </CardFooter>
         </Card>
 
@@ -287,7 +424,7 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
               Academic contributions across categories
             </p>
           </CardContent>
-          <CardFooter>
+          <CardFooter className={canGenerateReports() ? "space-y-2" : ""}>
             <Link href={`/faculty/contributions`} className="w-full">
               <Button
                 variant="outline"
@@ -297,6 +434,26 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
+            {canGenerateReports() && (
+              <Button
+                variant="default"
+                className="w-full flex justify-between items-center"
+                onClick={() => generateModuleReport("contributions")}
+                disabled={generatingReport === "contributions"}
+              >
+                {generatingReport === "contributions" ? (
+                  <>
+                    Generating...
+                    <Download className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  <>
+                    Generate Report
+                    <Download className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            )}
           </CardFooter>
         </Card>
 
@@ -317,7 +474,7 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
               Events attended or organized
             </p>
           </CardContent>
-          <CardFooter>
+          <CardFooter className={canGenerateReports() ? "space-y-2" : ""}>
             <Link href={`/faculty/workshops`} className="w-full">
               <Button
                 variant="outline"
@@ -327,6 +484,26 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
+            {canGenerateReports() && (
+              <Button
+                variant="default"
+                className="w-full flex justify-between items-center"
+                onClick={() => generateModuleReport("workshops")}
+                disabled={generatingReport === "workshops"}
+              >
+                {generatingReport === "workshops" ? (
+                  <>
+                    Generating...
+                    <Download className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  <>
+                    Generate Report
+                    <Download className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            )}
           </CardFooter>
         </Card>
 
@@ -347,7 +524,7 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
               Organizations and society memberships
             </p>
           </CardContent>
-          <CardFooter>
+          <CardFooter className={canGenerateReports() ? "space-y-2" : ""}>
             <Link href={`/faculty/memberships`} className="w-full">
               <Button
                 variant="outline"
@@ -357,6 +534,26 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
+            {canGenerateReports() && (
+              <Button
+                variant="default"
+                className="w-full flex justify-between items-center"
+                onClick={() => generateModuleReport("memberships")}
+                disabled={generatingReport === "memberships"}
+              >
+                {generatingReport === "memberships" ? (
+                  <>
+                    Generating...
+                    <Download className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  <>
+                    Generate Report
+                    <Download className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            )}
           </CardFooter>
         </Card>
 
@@ -375,7 +572,7 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
               Honors and recognitions received
             </p>
           </CardContent>
-          <CardFooter>
+          <CardFooter className={canGenerateReports() ? "space-y-2" : ""}>
             <Link href={`/faculty/awards`} className="w-full">
               <Button
                 variant="outline"
@@ -385,10 +582,28 @@ export default function FacultyModules({ facultyId }: FacultyModulesProps) {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
+            {canGenerateReports() && (
+              <Button
+                variant="default"
+                className="w-full flex justify-between items-center"
+                onClick={() => generateModuleReport("awards")}
+                disabled={generatingReport === "awards"}
+              >
+                {generatingReport === "awards" ? (
+                  <>
+                    Generating...
+                    <Download className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  <>
+                    Generate Report
+                    <Download className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            )}
           </CardFooter>
         </Card>
-        
-        
       </div>
 
       {/* Information Management System Footer */}

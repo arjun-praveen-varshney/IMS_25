@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import "jspdf-autotable";
 import { RowInput, UserOptions } from "jspdf-autotable";
 import {
   getFacultyReportData,
   getStudentsReportData,
   getResearchReportData,
+  getPublicationsReportData,
+  getResearchProjectsReportData,
+  getContributionsReportData,
+  getWorkshopsReportData,
+  getMembershipsReportData,
+  getAwardsReportData,
 } from "@/app/lib/report-data";
 import { RowDataPacket } from "mysql2";
 import fs from "fs";
@@ -28,6 +35,11 @@ const getFacultyForSignature = async (
   signatureUrl?: string;
 }> => {
   try {
+    console.log("getFacultyForSignature called with:", {
+      departmentName,
+      facultyId,
+    });
+
     // First priority: use provided facultyId if available
     if (facultyId) {
       const facultyQuery = `
@@ -41,15 +53,19 @@ const getFacultyForSignature = async (
         WHERE f.F_id = ?
       `;
 
+      console.log("Executing faculty query with facultyId:", facultyId);
       const facultyData = (await query(facultyQuery, [
         facultyId,
       ])) as RowDataPacket[];
 
+      console.log("Faculty query result:", facultyData);
       if (facultyData && facultyData.length > 0) {
-        return {
+        const result = {
           facultyName: facultyData[0].name || "Prof. XXXX XXXX",
           signatureUrl: facultyData[0].signature_url,
         };
+        console.log("Returning faculty info:", result);
+        return result;
       }
     }
 
@@ -387,6 +403,15 @@ export async function POST(request: NextRequest) {
       requestType,
     } = body;
 
+    console.log("Report API received:", {
+      reportType,
+      departmentId,
+      facultyId,
+      format,
+      requestType,
+      bodyKeys: Object.keys(body),
+    });
+
     // Handle HOD lookup request (consolidated approach)
     if (requestType === "hod-lookup") {
       if (!facultyId) {
@@ -472,6 +497,42 @@ export async function POST(request: NextRequest) {
         break;
       case "research":
         [pdfDoc, filename] = await generateResearchReport(
+          departmentId,
+          facultyId
+        );
+        break;
+      case "publications":
+        [pdfDoc, filename] = await generatePublicationsReport(
+          departmentId,
+          facultyId
+        );
+        break;
+      case "research-projects":
+        [pdfDoc, filename] = await generateResearchProjectsReport(
+          departmentId,
+          facultyId
+        );
+        break;
+      case "contributions":
+        [pdfDoc, filename] = await generateContributionsReport(
+          departmentId,
+          facultyId
+        );
+        break;
+      case "workshops":
+        [pdfDoc, filename] = await generateWorkshopsReport(
+          departmentId,
+          facultyId
+        );
+        break;
+      case "memberships":
+        [pdfDoc, filename] = await generateMembershipsReport(
+          departmentId,
+          facultyId
+        );
+        break;
+      case "awards":
+        [pdfDoc, filename] = await generateAwardsReport(
           departmentId,
           facultyId
         );
@@ -1643,6 +1704,487 @@ async function generateFullReport(
       pageWidth / 2,
       doc.internal.pageSize.height - 10,
       { align: "center" }
+    );
+  }
+
+  return [doc, filename];
+}
+
+// Generate Publications Report
+async function generatePublicationsReport(
+  departmentId?: string,
+  facultyId?: string
+): Promise<[jsPDF, string]> {
+  console.log("generatePublicationsReport called with:", {
+    departmentId,
+    facultyId,
+  });
+
+  const doc = new jsPDF();
+
+  // Get faculty info for proper context
+  let facultyInfo = null;
+  let reportTitle = "Publications Report";
+  let contextName = departmentId || "All Departments";
+
+  if (facultyId) {
+    console.log("Fetching faculty info for facultyId:", facultyId);
+    facultyInfo = await getFacultyForSignature("", facultyId);
+    console.log("Fetched faculty info:", facultyInfo);
+    reportTitle = `Faculty Publications Report - ${facultyInfo.facultyName}`;
+    contextName = facultyInfo.facultyName;
+  }
+
+  const filename = `publications_report_${
+    facultyId
+      ? facultyInfo?.facultyName.replace(/\s+/g, "_")
+      : departmentId || "all"
+  }_${new Date().toISOString().split("T")[0]}.pdf`;
+
+  // Add institutional letterhead
+  const contentStartY = await addInstitutionalLetterhead(
+    doc,
+    reportTitle,
+    facultyId ? undefined : departmentId
+  );
+
+  // Fetch data and add table
+  const [data, columns] = await getPublicationsReportData(
+    departmentId,
+    facultyId
+  );
+
+  let tableEndY = contentStartY + 10;
+
+  if (data.length > 0) {
+    const tableColumns = columns.map((col) => ({
+      title: col.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+      dataKey: col,
+    }));
+
+    autoTable(doc, {
+      startY: contentStartY + 10,
+      head: [tableColumns.map((col) => col.title)],
+      body: data.map((row) => columns.map((col) => row[col] || "")),
+      styles: { fontSize: 8 },
+      columnStyles: { 0: { cellWidth: 30 } },
+      didDrawPage: function (data) {
+        tableEndY = data.cursor?.y || tableEndY;
+      },
+    });
+  } else {
+    doc.setFontSize(12);
+    doc.text(
+      "No publications data found for the selected criteria.",
+      14,
+      contentStartY + 20
+    );
+    tableEndY = contentStartY + 30;
+  }
+
+  // Add signature section
+  if (facultyId && facultyInfo) {
+    await addSignatureSection(
+      doc,
+      tableEndY,
+      facultyInfo.facultyName,
+      "", // We'll determine department from facultyId in the function
+      facultyInfo.signatureUrl,
+      facultyId
+    );
+  }
+
+  return [doc, filename];
+}
+
+// Generate Research Projects Report
+async function generateResearchProjectsReport(
+  departmentId?: string,
+  facultyId?: string
+): Promise<[jsPDF, string]> {
+  const doc = new jsPDF();
+
+  // Get faculty info for proper context
+  let facultyInfo = null;
+  let reportTitle = "Research Projects Report";
+  let contextName = departmentId || "All Departments";
+
+  if (facultyId) {
+    facultyInfo = await getFacultyForSignature("", facultyId);
+    reportTitle = `Faculty Research Projects Report - ${facultyInfo.facultyName}`;
+    contextName = facultyInfo.facultyName;
+  }
+
+  const filename = `research_projects_report_${
+    facultyId
+      ? facultyInfo?.facultyName.replace(/\s+/g, "_")
+      : departmentId || "all"
+  }_${new Date().toISOString().split("T")[0]}.pdf`;
+
+  // Add institutional letterhead
+  const contentStartY = await addInstitutionalLetterhead(
+    doc,
+    reportTitle,
+    facultyId ? undefined : departmentId
+  );
+
+  // Fetch data and add table
+  const [data, columns] = await getResearchProjectsReportData(
+    departmentId,
+    facultyId
+  );
+
+  let tableEndY = contentStartY + 10;
+
+  if (data.length > 0) {
+    const tableColumns = columns.map((col) => ({
+      title: col.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+      dataKey: col,
+    }));
+
+    autoTable(doc, {
+      startY: contentStartY + 10,
+      head: [tableColumns.map((col) => col.title)],
+      body: data.map((row) => columns.map((col) => row[col] || "")),
+      styles: { fontSize: 8 },
+      columnStyles: { 0: { cellWidth: 30 } },
+      didDrawPage: function (data) {
+        tableEndY = data.cursor?.y || tableEndY;
+      },
+    });
+  } else {
+    doc.setFontSize(12);
+    doc.text(
+      "No research projects data found for the selected criteria.",
+      14,
+      contentStartY + 20
+    );
+    tableEndY = contentStartY + 30;
+  }
+
+  // Add signature section
+  if (facultyId && facultyInfo) {
+    await addSignatureSection(
+      doc,
+      tableEndY,
+      facultyInfo.facultyName,
+      "", // We'll determine department from facultyId in the function
+      facultyInfo.signatureUrl,
+      facultyId
+    );
+  }
+
+  return [doc, filename];
+}
+
+// Generate Contributions Report
+async function generateContributionsReport(
+  departmentId?: string,
+  facultyId?: string
+): Promise<[jsPDF, string]> {
+  const doc = new jsPDF();
+
+  // Get faculty info for proper context
+  let facultyInfo = null;
+  let reportTitle = "Contributions Report";
+  let contextName = departmentId || "All Departments";
+
+  if (facultyId) {
+    facultyInfo = await getFacultyForSignature("", facultyId);
+    reportTitle = `Faculty Contributions Report - ${facultyInfo.facultyName}`;
+    contextName = facultyInfo.facultyName;
+  }
+
+  const filename = `contributions_report_${
+    facultyId
+      ? facultyInfo?.facultyName.replace(/\s+/g, "_")
+      : departmentId || "all"
+  }_${new Date().toISOString().split("T")[0]}.pdf`;
+
+  // Add institutional letterhead
+  const contentStartY = await addInstitutionalLetterhead(
+    doc,
+    reportTitle,
+    facultyId ? undefined : departmentId
+  );
+
+  // Fetch data and add table
+  const [data, columns] = await getContributionsReportData(
+    departmentId,
+    facultyId
+  );
+
+  let tableEndY = contentStartY + 10;
+
+  if (data.length > 0) {
+    const tableColumns = columns.map((col) => ({
+      title: col.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+      dataKey: col,
+    }));
+
+    autoTable(doc, {
+      startY: contentStartY + 10,
+      head: [tableColumns.map((col) => col.title)],
+      body: data.map((row) => columns.map((col) => row[col] || "")),
+      styles: { fontSize: 8 },
+      columnStyles: { 0: { cellWidth: 30 } },
+      didDrawPage: function (data) {
+        tableEndY = data.cursor?.y || tableEndY;
+      },
+    });
+  } else {
+    doc.setFontSize(12);
+    doc.text(
+      "No contributions data found for the selected criteria.",
+      14,
+      contentStartY + 20
+    );
+    tableEndY = contentStartY + 30;
+  }
+
+  // Add signature section
+  if (facultyId && facultyInfo) {
+    await addSignatureSection(
+      doc,
+      tableEndY,
+      facultyInfo.facultyName,
+      "", // We'll determine department from facultyId in the function
+      facultyInfo.signatureUrl,
+      facultyId
+    );
+  }
+
+  return [doc, filename];
+}
+
+// Generate Workshops Report
+async function generateWorkshopsReport(
+  departmentId?: string,
+  facultyId?: string
+): Promise<[jsPDF, string]> {
+  const doc = new jsPDF();
+
+  // Get faculty info for proper context
+  let facultyInfo = null;
+  let reportTitle = "Workshops & Conferences Report";
+  let contextName = departmentId || "All Departments";
+
+  if (facultyId) {
+    facultyInfo = await getFacultyForSignature("", facultyId);
+    reportTitle = `Faculty Workshops & Conferences Report - ${facultyInfo.facultyName}`;
+    contextName = facultyInfo.facultyName;
+  }
+
+  const filename = `workshops_report_${
+    facultyId
+      ? facultyInfo?.facultyName.replace(/\s+/g, "_")
+      : departmentId || "all"
+  }_${new Date().toISOString().split("T")[0]}.pdf`;
+
+  // Add institutional letterhead
+  const contentStartY = await addInstitutionalLetterhead(
+    doc,
+    reportTitle,
+    facultyId ? undefined : departmentId
+  );
+
+  // Fetch data and add table
+  const [data, columns] = await getWorkshopsReportData(departmentId, facultyId);
+
+  let tableEndY = contentStartY + 10;
+
+  if (data.length > 0) {
+    const tableColumns = columns.map((col) => ({
+      title: col.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+      dataKey: col,
+    }));
+
+    autoTable(doc, {
+      startY: contentStartY + 10,
+      head: [tableColumns.map((col) => col.title)],
+      body: data.map((row) => columns.map((col) => row[col] || "")),
+      styles: { fontSize: 8 },
+      columnStyles: { 0: { cellWidth: 30 } },
+      didDrawPage: function (data) {
+        tableEndY = data.cursor?.y || tableEndY;
+      },
+    });
+  } else {
+    doc.setFontSize(12);
+    doc.text(
+      "No workshops data found for the selected criteria.",
+      14,
+      contentStartY + 20
+    );
+    tableEndY = contentStartY + 30;
+  }
+
+  // Add signature section
+  if (facultyId && facultyInfo) {
+    await addSignatureSection(
+      doc,
+      tableEndY,
+      facultyInfo.facultyName,
+      "", // We'll determine department from facultyId in the function
+      facultyInfo.signatureUrl,
+      facultyId
+    );
+  }
+
+  return [doc, filename];
+}
+
+// Generate Memberships Report
+async function generateMembershipsReport(
+  departmentId?: string,
+  facultyId?: string
+): Promise<[jsPDF, string]> {
+  const doc = new jsPDF();
+
+  // Get faculty info for proper context
+  let facultyInfo = null;
+  let reportTitle = "Professional Memberships Report";
+  let contextName = departmentId || "All Departments";
+
+  if (facultyId) {
+    facultyInfo = await getFacultyForSignature("", facultyId);
+    reportTitle = `Faculty Professional Memberships Report - ${facultyInfo.facultyName}`;
+    contextName = facultyInfo.facultyName;
+  }
+
+  const filename = `memberships_report_${
+    facultyId
+      ? facultyInfo?.facultyName.replace(/\s+/g, "_")
+      : departmentId || "all"
+  }_${new Date().toISOString().split("T")[0]}.pdf`;
+
+  // Add institutional letterhead
+  const contentStartY = await addInstitutionalLetterhead(
+    doc,
+    reportTitle,
+    facultyId ? undefined : departmentId
+  );
+
+  // Fetch data and add table
+  const [data, columns] = await getMembershipsReportData(
+    departmentId,
+    facultyId
+  );
+
+  let tableEndY = contentStartY + 10;
+
+  if (data.length > 0) {
+    const tableColumns = columns.map((col) => ({
+      title: col.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+      dataKey: col,
+    }));
+
+    autoTable(doc, {
+      startY: contentStartY + 10,
+      head: [tableColumns.map((col) => col.title)],
+      body: data.map((row) => columns.map((col) => row[col] || "")),
+      styles: { fontSize: 8 },
+      columnStyles: { 0: { cellWidth: 30 } },
+      didDrawPage: function (data) {
+        tableEndY = data.cursor?.y || tableEndY;
+      },
+    });
+  } else {
+    doc.setFontSize(12);
+    doc.text(
+      "No memberships data found for the selected criteria.",
+      14,
+      contentStartY + 20
+    );
+    tableEndY = contentStartY + 30;
+  }
+
+  // Add signature section
+  if (facultyId && facultyInfo) {
+    await addSignatureSection(
+      doc,
+      tableEndY,
+      facultyInfo.facultyName,
+      "", // We'll determine department from facultyId in the function
+      facultyInfo.signatureUrl,
+      facultyId
+    );
+  }
+
+  return [doc, filename];
+}
+
+// Generate Awards Report
+async function generateAwardsReport(
+  departmentId?: string,
+  facultyId?: string
+): Promise<[jsPDF, string]> {
+  const doc = new jsPDF();
+
+  // Get faculty info for proper context
+  let facultyInfo = null;
+  let reportTitle = "Awards & Recognitions Report";
+  let contextName = departmentId || "All Departments";
+
+  if (facultyId) {
+    facultyInfo = await getFacultyForSignature("", facultyId);
+    reportTitle = `Faculty Awards & Recognitions Report - ${facultyInfo.facultyName}`;
+    contextName = facultyInfo.facultyName;
+  }
+
+  const filename = `awards_report_${
+    facultyId
+      ? facultyInfo?.facultyName.replace(/\s+/g, "_")
+      : departmentId || "all"
+  }_${new Date().toISOString().split("T")[0]}.pdf`;
+
+  // Add institutional letterhead
+  const contentStartY = await addInstitutionalLetterhead(
+    doc,
+    reportTitle,
+    facultyId ? undefined : departmentId
+  );
+
+  // Fetch data and add table
+  const [data, columns] = await getAwardsReportData(departmentId, facultyId);
+
+  let tableEndY = contentStartY + 10;
+
+  if (data.length > 0) {
+    const tableColumns = columns.map((col) => ({
+      title: col.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+      dataKey: col,
+    }));
+
+    autoTable(doc, {
+      startY: contentStartY + 10,
+      head: [tableColumns.map((col) => col.title)],
+      body: data.map((row) => columns.map((col) => row[col] || "")),
+      styles: { fontSize: 8 },
+      columnStyles: { 0: { cellWidth: 30 } },
+      didDrawPage: function (data) {
+        tableEndY = data.cursor?.y || tableEndY;
+      },
+    });
+  } else {
+    doc.setFontSize(12);
+    doc.text(
+      "No awards data found for the selected criteria.",
+      14,
+      contentStartY + 20
+    );
+    tableEndY = contentStartY + 30;
+  }
+
+  // Add signature section
+  if (facultyId && facultyInfo) {
+    await addSignatureSection(
+      doc,
+      tableEndY,
+      facultyInfo.facultyName,
+      "", // We'll determine department from facultyId in the function
+      facultyInfo.signatureUrl,
+      facultyId
     );
   }
 

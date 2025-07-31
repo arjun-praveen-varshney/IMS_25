@@ -1,0 +1,452 @@
+mysql> show tables;
++--------------------------------+
+| Tables_in_ims2025              |
++--------------------------------+
+| activity_coordinator           |
+| bookschapter                   |
+| branchadmins                   |
+| career_guidance                |
+| certificates                   |
+| clubadmin                      |
+| clubs                          |
+| collaborative_activities       |
+| competitive_exams              |
+| conference_publications        |
+| courses                        |
+| credentials                    |
+| department                     |
+| department_details             |
+| faculty                        |
+| faculty_achievements           |
+| faculty_awards                 |
+| faculty_contributions          |
+| faculty_details                |
+| faculty_interactions           |
+| faculty_memberships            |
+| faculty_professional_body      |
+| faculty_publications           |
+| faculty_qualifications         |
+| faculty_resource_person        |
+| faculty_workshops              |
+| fdp_sttp_attended              |
+| fdp_sttp_organised             |
+| financial_support              |
+| higher_studies                 |
+| incharge_section               |
+| innovative_techniques          |
+| internship_details             |
+| journal_publications           |
+| mentoring_report               |
+| outreachprogram                |
+| paper_publication              |
+| password_reset_tokens          |
+| patentcopyright                |
+| permissions                    |
+| placed_student_data            |
+| placement_coordinator          |
+| placementcell                  |
+| publication_co_authors         |
+| remedial_details               |
+| research_project_consultancies |
+| role_permissions               |
+| sessions                       |
+| student                        |
+| student_achievements           |
+| student_admins                 |
+| student_club_admin             |
+| student_clubs                  |
+| superadmin                     |
+| tech_nontech                   |
+| testing                        |
+| users                          |
+| workshops                      |
++--------------------------------+
+58 rows in set (0.01 sec)
+
+mysql> desc bookschapter;
++-----------------------------+--------------+------+-----+---------+----------------+
+| Field                       | Type         | Null | Key | Default | Extra          |
++-----------------------------+--------------+------+-----+---------+----------------+
+| id                          | int          | NO   | PRI | NULL    | auto_increment |
+| academic_year               | varchar(100) | NO   |     | NULL    |                |
+| Name_Of_The_Teacher         | varchar(100) | NO   |     | NULL    |                |
+| Branch                      | varchar(100) | NO   |     | NULL    |                |
+| Title_Of_The_Book_Published | varchar(255) | NO   |     | NULL    |                |
+| Name_Of_The_Publisher       | varchar(255) | NO   |     | NULL    |                |
+| National_Or_International   | varchar(100) | NO   |     | NULL    |                |
+| ISBN_Or_ISSN_Number         | varchar(100) | NO   |     | NULL    |                |
+| Affiliating_institute       | varchar(100) | NO   |     | NULL    |                |
+| Year_Of_Publication         | int          | NO   |     | NULL    |                |
+| paper_link                  | varchar(100) | NO   |     | NULL    |                |
+| pdffile1                    | varchar(100) | NO   |     | NULL    |                |
+| pdffile2                    | varchar(100) | NO   |     | NULL    |                |
+| user_id                     | varchar(255) | NO   |     | NULL    |                |
+| STATUS                      | varchar(255) | NO   |     | NULL    |                |
++-----------------------------+--------------+------+-----+---------+----------------+
+15 rows in set (0.00 sec)
+
+mysql> desc conference_publications;
++---------------------------+--------------+------+-----+---------+----------------+
+| Field                     | Type         | Null | Key | Default | Extra          |
++---------------------------+--------------+------+-----+---------+----------------+
+| id                        | int          | NO   | PRI | NULL    | auto_increment |
+| Academic_Year             | varchar(255) | NO   |     | NULL    |                |
+| Name_Of_The_Teacher       | varchar(512) | NO   |     | NULL    |                |
+| Branch                    | varchar(255) | NO   |     | NULL    |                |
+| Title_Of_The_Paper        | varchar(512) | NO   |     | NULL    |                |
+| Title_Of_The_Proceedings  | varchar(512) | NO   |     | NULL    |                |
+| Name_Of_The_Conference    | varchar(512) | NO   |     | NULL    |                |
+| National_Or_International | varchar(512) | NO   |     | NULL    |                |
+| Year_Of_Publication       | varchar(255) | NO   |     | NULL    |                |
+| ISBN_Or_ISSN_Number       | varchar(512) | NO   |     | NULL    |                |
+| Affiliating_Institute     | varchar(512) | NO   |     | NULL    |                |
+| Name_Of_Publisher         | varchar(512) | NO   |     | NULL    |                |
+| Details_Of_Paper          | varchar(512) | NO   |     | NULL    |                |
+| Indexing                  | varchar(255) | NO   |     | NULL    |                |
+| other                     | varchar(255) | NO   |     | NULL    |                |
+| Paper_Weblink             | varchar(512) | NO   |     | NULL    |                |
+| pdffile2                  | text         | NO   |     | NULL    |                |
+| pdffile3                  | text         | NO   |     | NULL    |                |
+| user_id                   | int          | NO   |     | NULL    |                |
+| STATUS                    | varchar(50)  | NO   |     | NULL    |                |
+| publication_date          | date         | YES  |     | NULL    |                |
+| is_full_date_known        | tinyint(1)   | YES  |     | 0       |                |
+| faculty_id                | bigint       | YES  | MUL | NULL    |                |
+| abstract                  | text         | YES  |     | NULL    |                |
+| citation_count            | int          | YES  |     | 0       |                |
+| doi                       | varchar(255) | YES  |     | NULL    |                |
+| publication_venue         | varchar(255) | YES  |     | NULL    |                |
++---------------------------+--------------+------+-----+---------+----------------+
+27 rows in set (0.00 sec)
+
+mysql> desc department;
++-----------------+--------------+------+-----+---------+----------------+
+| Field           | Type         | Null | Key | Default | Extra          |
++-----------------+--------------+------+-----+---------+----------------+
+| Department_ID   | int          | NO   | PRI | NULL    | auto_increment |
+| Department_Name | varchar(255) | NO   |     | NULL    |                |
++-----------------+--------------+------+-----+---------+----------------+
+2 rows in set (0.00 sec)
+
+mysql> desc department_details;
++-------------------------+--------------+------+-----+---------+-------+
+| Field                   | Type         | Null | Key | Default | Extra |
++-------------------------+--------------+------+-----+---------+-------+
+| Department_ID           | int          | NO   | MUL | NULL    |       |
+| Establishment_Year      | year         | NO   |     | NULL    |       |
+| Department_Code         | varchar(50)  | NO   | PRI | NULL    |       |
+| Email_ID                | varchar(255) | NO   | UNI | NULL    |       |
+| Department_Phone_Number | varchar(15)  | NO   | UNI | NULL    |       |
+| HOD_ID                  | bigint       | YES  | MUL | NULL    |       |
+| Vision                  | text         | YES  |     | NULL    |       |
+| Mission                 | text         | YES  |     | NULL    |       |
+| Total_Faculty           | int          | YES  |     | NULL    |       |
+| Total_Students          | int          | YES  |     | NULL    |       |
+| Website_URL             | varchar(255) | YES  |     | NULL    |       |
+| Notable_Achievements    | text         | YES  |     | NULL    |       |
+| Industry_Collaboration  | text         | YES  |     | NULL    |       |
+| Research_Focus_Area     | text         | YES  |     | NULL    |       |
++-------------------------+--------------+------+-----+---------+-------+
+14 rows in set (0.00 sec)
+
+mysql> desc faculty;
++--------+--------------+------+-----+---------+----------------+
+| Field  | Type         | Null | Key | Default | Extra          |
++--------+--------------+------+-----+---------+----------------+
+| F_id   | bigint       | NO   | PRI | NULL    | auto_increment |
+| F_name | varchar(255) | NO   |     | NULL    |                |
+| F_dept | text         | NO   |     | NULL    |                |
++--------+--------------+------+-----+---------+----------------+
+3 rows in set (0.00 sec)
+
+mysql> desc faculty_details;
++--------------------------------+--------------+------+-----+---------+-------+
+| Field                          | Type         | Null | Key | Default | Extra |
++--------------------------------+--------------+------+-----+---------+-------+
+| F_ID                           | bigint       | YES  | MUL | NULL    |       |
+| Email                          | varchar(255) | NO   | PRI | NULL    |       |
+| Phone_Number                   | varchar(15)  | NO   | UNI | NULL    |       |
+| PAN_Number                     | varchar(10)  | NO   | UNI | NULL    |       |
+| Aadhaar_Number                 | varchar(12)  | YES  | UNI | NULL    |       |
+| Highest_Degree                 | varchar(255) | NO   |     | NULL    |       |
+| Area_of_Certification          | text         | YES  |     | NULL    |       |
+| Date_of_Joining                | date         | NO   |     | NULL    |       |
+| Experience                     | int          | YES  |     | NULL    |       |
+| Past_Experience                | text         | YES  |     | NULL    |       |
+| Future_Experience_Calculated   | int          | YES  |     | NULL    |       |
+| Age                            | int          | YES  |     | NULL    |       |
+| Other_Experience               | text         | YES  |     | NULL    |       |
+| Resignation_at_Joining         | text         | YES  |     | NULL    |       |
+| Current_Designation            | varchar(255) | YES  |     | NULL    |       |
+| Photo                          | blob         | YES  |     | NULL    |       |
+| Date_Appointed_as_Professor    | date         | YES  |     | NULL    |       |
+| Professor_of_Other_Institution | text         | YES  |     | NULL    |       |
+| Date_of_Birth                  | date         | NO   |     | NULL    |       |
+| Detailed_ID                    | text         | YES  |     | NULL    |       |
+| Various_Other_Info             | text         | YES  |     | NULL    |       |
+| Nature_of_Association          | text         | YES  |     | NULL    |       |
+| Regular_Contribution           | text         | YES  |     | NULL    |       |
+| apaar_id                       | varchar(30)  | YES  |     | NULL    |       |
+| signature_url                  | varchar(255) | YES  | MUL | NULL    |       |
++--------------------------------+--------------+------+-----+---------+-------+
+25 rows in set (0.00 sec)
+
+mysql> desc faculty_achievements;
++------------------------+--------------+------+-----+---------+----------------+
+| Field                  | Type         | Null | Key | Default | Extra          |
++------------------------+--------------+------+-----+---------+----------------+
+| id                     | int          | NO   | PRI | NULL    | auto_increment |
+| Academic_Year          | varchar(50)  | NO   |     | NULL    |                |
+| Name_Of_The_Faculty    | varchar(50)  | NO   |     | NULL    |                |
+| Branch                 | varchar(50)  | NO   |     | NULL    |                |
+| Nature_of_Achievement  | varchar(500) | NO   |     | NULL    |                |
+| other                  | varchar(500) | NO   |     | NULL    |                |
+| Details_of_Achievement | varchar(500) | NO   |     | NULL    |                |
+| pdffile1               | text         | NO   |     | NULL    |                |
+| user_id                | int          | NO   |     | NULL    |                |
+| STATUS                 | varchar(50)  | NO   |     | NULL    |                |
++------------------------+--------------+------+-----+---------+----------------+
+10 rows in set (0.01 sec)
+
+mysql> desc faculty_awards;
++-----------------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| Field                 | Type         | Null | Key | Default           | Extra                                         |
++-----------------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| award_id              | int          | NO   | PRI | NULL              | auto_increment                                |
+| faculty_id            | bigint       | NO   | MUL | NULL              |                                               |
+| award_name            | varchar(255) | NO   |     | NULL              |                                               |
+| awarding_organization | varchar(255) | NO   |     | NULL              |                                               |
+| award_date            | date         | NO   |     | NULL              |                                               |
+| award_description     | text         | YES  |     | NULL              |                                               |
+| created_at            | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
+| updated_at            | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
+| certificate           | varchar(255) | YES  |     | NULL              |                                               |
+| category              | varchar(255) | YES  |     | Other             |                                               |
++-----------------------+--------------+------+-----+-------------------+-----------------------------------------------+
+10 rows in set (0.00 sec)
+
+mysql> desc faculty_contributions;
++--------------------+--------------+------+-----+---------+----------------+
+| Field              | Type         | Null | Key | Default | Extra          |
++--------------------+--------------+------+-----+---------+----------------+
+| Contribution_ID    | int          | NO   | PRI | NULL    | auto_increment |
+| F_ID               | bigint       | NO   | MUL | NULL    |                |
+| Contribution_Type  | varchar(255) | NO   |     | NULL    |                |
+| Description        | text         | NO   |     | NULL    |                |
+| Contribution_Date  | date         | NO   |     | NULL    |                |
+| Recognized_By      | varchar(255) | YES  |     | NULL    |                |
+| Award_Received     | varchar(255) | YES  |     | NULL    |                |
+| Documents_Attached | blob         | YES  |     | NULL    |                |
+| Remarks            | text         | YES  |     | NULL    |                |
++--------------------+--------------+------+-----+---------+----------------+
+9 rows in set (0.00 sec)
+
+mysql> desc faculty_interactions;
++------------------------+--------------+------+-----+---------+----------------+
+| Field                  | Type         | Null | Key | Default | Extra          |
++------------------------+--------------+------+-----+---------+----------------+
+| id                     | int          | NO   | PRI | NULL    | auto_increment |
+| Academic_Year          | varchar(11)  | NO   |     | NULL    |                |
+| Branch                 | varchar(25)  | NO   |     | NULL    |                |
+| Name_of_Faculty        | varchar(255) | NO   |     | NULL    |                |
+| Nature_of_interaction  | varchar(255) | NO   |     | NULL    |                |
+| other                  | varchar(255) | NO   |     | NULL    |                |
+| Details_of_interaction | varchar(500) | NO   |     | NULL    |                |
+| Date_of_interaction    | date         | NO   |     | NULL    |                |
+| Level_of_interaction   | varchar(255) | NO   |     | NULL    |                |
+| Duration               | varchar(110) | NO   |     | NULL    |                |
+| user_id                | int          | NO   |     | NULL    |                |
+| STATUS                 | varchar(50)  | NO   |     | NULL    |                |
+| pdffile1               | text         | NO   |     | NULL    |                |
++------------------------+--------------+------+-----+---------+----------------+
+13 rows in set (0.00 sec)
+
+mysql> desc faculty_memberships;
++-----------------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| Field                 | Type         | Null | Key | Default           | Extra                                         |
++-----------------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| membership_id         | int          | NO   | PRI | NULL              | auto_increment                                |
+| faculty_id            | bigint       | NO   | MUL | NULL              |                                               |
+| organization          | varchar(255) | NO   |     | NULL              |                                               |
+| organization_category | varchar(50)  | NO   |     | National          |                                               |
+| membership_type       | varchar(100) | NO   |     | NULL              |                                               |
+| membership_identifier | varchar(100) | NO   |     | NULL              |                                               |
+| certificate_url       | varchar(255) | NO   |     | NULL              |                                               |
+| start_date            | date         | NO   |     | NULL              |                                               |
+| end_date              | date         | YES  |     | NULL              |                                               |
+| description           | text         | YES  |     | NULL              |                                               |
+| created_at            | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
+| updated_at            | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
++-----------------------+--------------+------+-----+-------------------+-----------------------------------------------+
+12 rows in set (0.00 sec)
+
+mysql> desc faculty_professional_body;
++------------------------+----------------------------------+------+-----+---------+----------------+
+| Field                  | Type                             | Null | Key | Default | Extra          |
++------------------------+----------------------------------+------+-----+---------+----------------+
+| SrNo                   | int                              | NO   | PRI | NULL    | auto_increment |
+| Professional_Body_ID   | int                              | YES  |     | NULL    |                |
+| F_ID                   | bigint                           | YES  | MUL | NULL    |                |
+| Professional_Body_Name | varchar(150)                     | NO   |     | NULL    |                |
+| Membership_Level       | enum('National','International') | NO   |     | NULL    |                |
+| Joining_Date           | date                             | NO   |     | NULL    |                |
+| Validity_Date          | date                             | YES  |     | NULL    |                |
+| Initial_Grade          | varchar(50)                      | YES  |     | NULL    |                |
+| Membership_Grade       | varchar(100)                     | YES  |     | NULL    |                |
+| Membership_Number      | varchar(50)                      | YES  | UNI | NULL    |                |
+| Unique_ID              | varchar(50)                      | YES  | UNI | NULL    |                |
+| Contributions          | text                             | YES  |     | NULL    |                |
+| Attachment_Document    | blob                             | YES  |     | NULL    |                |
+| Position               | varchar(100)                     | YES  |     | NULL    |                |
+| Official_Role          | text                             | YES  |     | NULL    |                |
+| Attendee_Count         | smallint                         | YES  |     | NULL    |                |
++------------------------+----------------------------------+------+-----+---------+----------------+
+16 rows in set (0.00 sec)
+
+mysql> desc faculty_publications;
++----------------------------+------------------------------------------------------------+------+-----+-------------------+-----------------------------------------------+
+| Field                      | Type                                                       | Null | Key | Default           | Extra                                         |
++----------------------------+------------------------------------------------------------+------+-----+-------------------+-----------------------------------------------+
+| id                         | int                                                        | NO   | PRI | NULL              | auto_increment                                |
+| faculty_id                 | bigint                                                     | NO   | MUL | NULL              |                                               |
+| title                      | varchar(500)                                               | NO   |     | NULL              |                                               |
+| abstract                   | text                                                       | YES  |     | NULL              |                                               |
+| authors                    | varchar(500)                                               | NO   |     | NULL              |                                               |
+| publication_date           | date                                                       | NO   |     | NULL              |                                               |
+| publication_type           | enum('journal','conference','book','book_chapter','other') | NO   |     | NULL              |                                               |
+| publication_venue          | varchar(500)                                               | NO   |     | NULL              |                                               |
+| doi                        | varchar(100)                                               | YES  |     | NULL              |                                               |
+| url                        | varchar(1000)                                              | YES  |     | NULL              |                                               |
+| citation_count             | int                                                        | YES  |     | NULL              |                                               |
+| created_at                 | timestamp                                                  | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
+| updated_at                 | timestamp                                                  | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
+| citations_crossref         | int                                                        | YES  |     | NULL              |                                               |
+| citations_semantic_scholar | int                                                        | YES  |     | NULL              |                                               |
+| citations_google_scholar   | int                                                        | YES  |     | NULL              |                                               |
+| citations_web_of_science   | int                                                        | YES  |     | NULL              |                                               |
+| citations_scopus           | int                                                        | YES  |     | NULL              |                                               |
+| citations_last_updated     | timestamp                                                  | YES  |     | NULL              |                                               |
++----------------------------+------------------------------------------------------------+------+-----+-------------------+-----------------------------------------------+
+19 rows in set (0.00 sec)
+
+mysql> desc faculty_qualifications;
++------------------+--------------+------+-----+---------+-------+
+| Field            | Type         | Null | Key | Default | Extra |
++------------------+--------------+------+-----+---------+-------+
+| f_id             | bigint       | NO   | MUL | NULL    |       |
+| highest_degree   | varchar(100) | NO   |     | NULL    |       |
+| year_obtained    | year         | NO   |     | NULL    |       |
+| university       | varchar(150) | NO   |     | NULL    |       |
+| certificate_path | varchar(255) | YES  |     | NULL    |       |
++------------------+--------------+------+-----+---------+-------+
+5 rows in set (0.00 sec)
+
+mysql> desc faculty_resource_person;
++--------------------+--------------+------+-----+---------+-------+
+| Field              | Type         | Null | Key | Default | Extra |
++--------------------+--------------+------+-----+---------+-------+
+| F_ID               | bigint       | NO   | MUL | NULL    |       |
+| Program_Type       | varchar(255) | YES  |     | NULL    |       |
+| Program_Name       | varchar(255) | YES  |     | NULL    |       |
+| Event_Date         | date         | NO   |     | NULL    |       |
+| Event_Duration     | varchar(255) | YES  |     | NULL    |       |
+| Location           | varchar(255) | YES  |     | NULL    |       |
+| Event_Mode         | varchar(100) | YES  |     | NULL    |       |
+| Organized_By       | varchar(255) | YES  |     | NULL    |       |
+| Faculty_Role       | varchar(255) | YES  |     | NULL    |       |
+| Topics_Covered     | text         | YES  |     | NULL    |       |
+| Certificate_Issued | tinyint(1)   | YES  |     | 0       |       |
+| Certificate_Upload | blob         | YES  |     | NULL    |       |
+| Remarks            | text         | YES  |     | NULL    |       |
+| Event_Status       | text         | YES  |     | NULL    |       |
+| Faculty_Name       | varchar(255) | YES  |     | NULL    |       |
++--------------------+--------------+------+-----+---------+-------+
+15 rows in set (0.00 sec)
+
+mysql> desc faculty_workshops;
++-------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| Field       | Type         | Null | Key | Default           | Extra                                         |
++-------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| id          | int          | NO   | PRI | NULL              | auto_increment                                |
+| faculty_id  | bigint       | NO   | MUL | NULL              |                                               |
+| title       | varchar(255) | NO   |     | NULL              |                                               |
+| description | text         | YES  |     | NULL              |                                               |
+| start_date  | date         | NO   |     | NULL              |                                               |
+| end_date    | date         | YES  |     | NULL              |                                               |
+| venue       | varchar(255) | NO   |     | NULL              |                                               |
+| type        | varchar(50)  | NO   |     | NULL              |                                               |
+| role        | varchar(50)  | NO   |     | NULL              |                                               |
+| created_at  | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
+| updated_at  | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
++-------------+--------------+------+-----+-------------------+-----------------------------------------------+
+11 rows in set (0.00 sec)
+
+mysql> desc publication_co_authors;
++----------------+-----------+------+-----+-------------------+-------------------+
+| Field          | Type      | Null | Key | Default           | Extra             |
++----------------+-----------+------+-----+-------------------+-------------------+
+| id             | int       | NO   | PRI | NULL              | auto_increment    |
+| publication_id | int       | NO   | MUL | NULL              |                   |
+| faculty_id     | bigint    | NO   | MUL | NULL              |                   |
+| author_order   | int       | YES  |     | 1                 |                   |
+| created_at     | timestamp | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
++----------------+-----------+------+-----+-------------------+-------------------+
+5 rows in set (0.00 sec)
+
+mysql> desc research_project_consultancies;
++-----------------------------------------------+--------------+------+-----+---------+----------------+
+| Field                                         | Type         | Null | Key | Default | Extra          |
++-----------------------------------------------+--------------+------+-----+---------+----------------+
+| id                                            | int          | NO   | PRI | NULL    | auto_increment |
+| Academic_year                                 | varchar(255) | NO   |     | NULL    |                |
+| Type_Research_Project_Consultancy             | varchar(100) | NO   |     | NULL    |                |
+| Branch                                        | varchar(255) | NO   |     | NULL    |                |
+| Name_Of_Project_Endownment                    | varchar(100) | NO   |     | NULL    |                |
+| Name_Of_Principal_Investigator_CoInvestigator | varchar(100) | NO   |     | NULL    |                |
+| Department_Of_Principal_Investigator          | varchar(100) | NO   |     | NULL    |                |
+| Year_Of_Award                                 | varchar(100) | NO   |     | NULL    |                |
+| Amount_Sanctioned                             | varchar(100) | NO   |     | NULL    |                |
+| Duration_Of_The_Project                       | varchar(100) | NO   |     | NULL    |                |
+| Name_Of_The_Funding_Agency                    | varchar(250) | NO   |     | NULL    |                |
+| Funding_Agency_Website_Link                   | varchar(250) | NO   |     | NULL    |                |
+| Type_Govt_NonGovt                             | varchar(100) | NO   |     | NULL    |                |
+| pdffile1                                      | varchar(100) | NO   |     | NULL    |                |
+| user_id                                       | int          | NO   |     | NULL    |                |
+| STATUS                                        | varchar(255) | NO   |     | NULL    |                |
+| Source                                        | varchar(255) | NO   |     | NULL    |                |
++-----------------------------------------------+--------------+------+-----+---------+----------------+
+17 rows in set (0.00 sec)
+
+mysql> desc sessions;
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| Field      | Type         | Null | Key | Default           | Extra                                         |
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| id         | varchar(255) | NO   | PRI | NULL              |                                               |
+| user_id    | int          | NO   | MUL | NULL              |                                               |
+| expires    | datetime     | NO   | MUL | NULL              |                                               |
+| data       | text         | YES  |     | NULL              |                                               |
+| created_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
+| updated_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+6 rows in set (0.01 sec)
+
+mysql> desc users;
++--------------------------+-------------------------------------------------+------+-----+-------------------+-----------------------------------------------+
+| Field                    | Type                                            | Null | Key | Default           | Extra                                         |
++--------------------------+-------------------------------------------------+------+-----+-------------------+-----------------------------------------------+
+| id                       | int                                             | NO   | PRI | NULL              | auto_increment                                |
+| username                 | varchar(50)                                     | NO   | UNI | NULL              |                                               |
+| password                 | varchar(255)                                    | NO   |     | NULL              |                                               |
+| email                    | varchar(100)                                    | NO   | UNI | NULL              |                                               |
+| name                     | varchar(100)                                    | YES  |     | NULL              |                                               |
+| role                     | enum('admin','hod','faculty','staff','student') | NO   |     | faculty           |                                               |
+| department_id            | int                                             | YES  | MUL | NULL              |                                               |
+| faculty_id               | bigint                                          | YES  | MUL | NULL              |                                               |
+| student_id               | bigint                                          | YES  |     | NULL              |                                               |
+| is_active                | tinyint(1)                                      | NO   |     | 1                 |                                               |
+| created_at               | timestamp                                       | NO   |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
+| updated_at               | timestamp                                       | NO   |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
+| last_login               | timestamp                                       | YES  |     | NULL              |                                               |
+| default_password_changed | tinyint(1)                                      | NO   |     | 0                 |                                               |
++--------------------------+-------------------------------------------------+------+-----+-------------------+-----------------------------------------------+
+14 rows in set (0.00 sec)

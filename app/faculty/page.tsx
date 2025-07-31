@@ -211,10 +211,11 @@ export default function FacultyPage() {
     (experienceFilter !== "" && experienceFilter !== "all");
 
   // Check if user has permission to add/edit faculty
-  const canManageFaculty = userRole === "admin" || userRole === "hod" || userRole === "department";
+  const canManageFaculty =
+    userRole === "admin" || userRole === "hod" || userRole === "department";
 
-  // If the user is a faculty member, show the faculty modules view
-  if (userRole === "faculty") {
+  // If the user is a faculty member or HOD, show the faculty modules view
+  if (userRole === "faculty" || userRole === "hod") {
     return (
       <MainLayout>
         <div className="space-y-6">
@@ -260,81 +261,79 @@ export default function FacultyPage() {
           )}
         </div>
         <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Search by name, email, or designation..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 w-full"
-              />
-            </div>
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Search by name, email, or designation..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 w-full"
+            />
           </div>
+        </div>
 
-          {/* Active filters display */}
-            <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t">
-              <span className="text-sm text-gray-500 mt-1">
-                Active filters:
-              </span>
+        {/* Active filters display */}
+        <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t">
+          <span className="text-sm text-gray-500 mt-1">Active filters:</span>
 
-              {search && (
-                <Badge variant="outline" className="flex items-center gap-1">
-              Search: {" "}
-                  {search.length > 15 ? search.slice(0, 15) + "..." : search}
-                  <X
-                    className="h-3 w-3 ml-1 cursor-pointer"
-                    onClick={() => setSearch("")}
-                  />
-                </Badge>
-              )}
+          {search && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              Search:{" "}
+              {search.length > 15 ? search.slice(0, 15) + "..." : search}
+              <X
+                className="h-3 w-3 ml-1 cursor-pointer"
+                onClick={() => setSearch("")}
+              />
+            </Badge>
+          )}
 
-              {department && department !== "all" && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  Department: {department}
-                  <X
-                    className="h-3 w-3 ml-1 cursor-pointer"
-                    onClick={() => setDepartment("")}
-                  />
-                </Badge>
-              )}
+          {department && department !== "all" && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              Department: {department}
+              <X
+                className="h-3 w-3 ml-1 cursor-pointer"
+                onClick={() => setDepartment("")}
+              />
+            </Badge>
+          )}
 
-              {designation && designation !== "all" && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  Designation: {designation}
-                  <X
-                    className="h-3 w-3 ml-1 cursor-pointer"
-                    onClick={() => setDesignation("all")}
-                  />
-                </Badge>
-              )}
+          {designation && designation !== "all" && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              Designation: {designation}
+              <X
+                className="h-3 w-3 ml-1 cursor-pointer"
+                onClick={() => setDesignation("all")}
+              />
+            </Badge>
+          )}
 
-              {experienceFilter && experienceFilter !== "all" && (
-                <Badge variant="outline" className="flex items-center gap-1">
-              Experience: {" "}
-                  {experienceFilter === "15+"
-                    ? "15+ years"
-                    : `${experienceFilter} years`}
-                  <X
-                    className="h-3 w-3 ml-1 cursor-pointer"
-                    onClick={() => setExperienceFilter("all")}
-                  />
-                </Badge>
-              )}
+          {experienceFilter && experienceFilter !== "all" && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              Experience:{" "}
+              {experienceFilter === "15+"
+                ? "15+ years"
+                : `${experienceFilter} years`}
+              <X
+                className="h-3 w-3 ml-1 cursor-pointer"
+                onClick={() => setExperienceFilter("all")}
+              />
+            </Badge>
+          )}
 
-              <Button
-                variant="ghost"
-                size="sm"
-                className="ml-auto text-xs"
-                onClick={() => {
-                  setSearch("");
-                  setDepartment("all");
-                  setDesignation("all");
-                  setExperienceFilter("all");
-                }}
-              >
-                Clear All
-              </Button>
-            </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto text-xs"
+            onClick={() => {
+              setSearch("");
+              setDepartment("all");
+              setDesignation("all");
+              setExperienceFilter("all");
+            }}
+          >
+            Clear All
+          </Button>
+        </div>
 
         {/* Faculty list with department color indicators */}
         <div className="min-h-[300px]">
@@ -401,9 +400,9 @@ export default function FacultyPage() {
                   <SelectContent>
                     <SelectItem value="name">Sort by Name</SelectItem>
                     {(userRole === "admin" || userRole === "hod") && (
-                    <SelectItem value="department">
-                      Sort by Department
-                    </SelectItem>
+                      <SelectItem value="department">
+                        Sort by Department
+                      </SelectItem>
                     )}
                     <SelectItem value="experience-desc">
                       Experience (High to Low)
@@ -423,8 +422,10 @@ export default function FacultyPage() {
                     showEditButton={
                       canManageFaculty &&
                       (userRole === "admin" ||
-                        (userRole === "hod" && userDepartment === member.F_dept) ||
-                        (userRole === "department" && userDepartment === member.F_dept))
+                        (userRole === "hod" &&
+                          userDepartment === member.F_dept) ||
+                        (userRole === "department" &&
+                          userDepartment === member.F_dept))
                     }
                   />
                 ))}

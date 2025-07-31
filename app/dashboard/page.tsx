@@ -647,7 +647,7 @@ export default function DashboardPage() {
                 />
               </ChartCard>
               <ChartCard
-                title="student by Department"
+                title="Students by Department"
                 className="bg-white shadow-md hover:shadow-lg transition-shadow"
                 useGradient={true}
                 gradientFrom="from-purple-600"
