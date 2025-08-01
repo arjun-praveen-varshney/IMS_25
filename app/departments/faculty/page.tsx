@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useAuth } from "@/app/providers/auth-provider";
 import { useRouter, useSearchParams } from "next/navigation";
 import MainLayout from "@/app/components/layout/MainLayout";
@@ -85,7 +85,7 @@ const reportModules: ReportModule[] = [
   },
 ];
 
-export default function DepartmentFacultyPage() {
+function DepartmentFacultyContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -394,5 +394,30 @@ export default function DepartmentFacultyPage() {
         </Tabs>
       </div>
     </MainLayout>
+  );
+}
+
+function FacultyPageFallback() {
+  return (
+    <MainLayout>
+      <div className="p-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    </MainLayout>
+  );
+}
+
+export default function DepartmentFacultyPage() {
+  return (
+    <Suspense fallback={<FacultyPageFallback />}>
+      <DepartmentFacultyContent />
+    </Suspense>
   );
 }
